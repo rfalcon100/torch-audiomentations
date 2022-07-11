@@ -2,7 +2,7 @@ import unittest
 
 import torch
 
-from torch_audiomentations import Mix
+from torch_audiomentations.augmentations.mix import Mix
 from torch_audiomentations.utils.dsp import calculate_rms
 from torch_audiomentations.utils.file import load_audio
 from .utils import TEST_FIXTURES_DIR
@@ -24,7 +24,7 @@ class TestMix(unittest.TestCase):
         self.noise = (
             torch.from_numpy(
                 load_audio(
-                    TEST_FIXTURES_DIR / "bg" / "bg.wav", sample_rate=self.sample_rate,
+                    TEST_FIXTURES_DIR / "bg" / "bg.wav", sample_rate=self.sample_rate
                 )
             )
             .unsqueeze(0)

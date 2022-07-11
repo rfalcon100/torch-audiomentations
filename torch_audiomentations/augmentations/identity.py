@@ -6,6 +6,10 @@ from ..utils.object_dict import ObjectDict
 
 
 class Identity(BaseWaveformTransform):
+    """
+    This transform returns the input unchanged. It can be used for simplifying the code
+    in cases where data augmentation should be disabled.
+    """
 
     supported_modes = {"per_batch", "per_example", "per_channel"}
     supports_multichannel = True
@@ -27,4 +31,3 @@ class Identity(BaseWaveformTransform):
             targets=targets,
             target_rate=target_rate,
         )
-

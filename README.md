@@ -4,7 +4,7 @@
 ![Build status](https://img.shields.io/github/workflow/status/asteroid-team/torch-audiomentations/CI)
 [![Code coverage](https://img.shields.io/codecov/c/github/asteroid-team/torch-audiomentations/master.svg)](https://codecov.io/gh/asteroid-team/torch-audiomentations)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-black.svg)](https://github.com/ambv/black)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6381721.svg)](https://doi.org/10.5281/zenodo.6381721)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6778064.svg)](https://doi.org/10.5281/zenodo.6778064)
 
 Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github.com/iver56/audiomentations).
 
@@ -131,6 +131,13 @@ _Added in v0.8.0_
 
 Apply high-pass filtering to the input audio.
 
+## Identity
+
+_Added in v0.11.0_
+
+This transform returns the input unchanged. It can be used for simplifying the code
+in cases where data augmentation should be disabled.
+
 ## LowPassFilter
 
 _Added in v0.8.0_
@@ -196,6 +203,31 @@ classification. It was successfully applied in the paper
 # Changelog
 
 ## Unreleased
+
+### Added
+
+* Add new transforms: `Mix`, `Padding`, `RandomCrop` and `SpliceOut`
+
+## [v0.11.0] - 2022-06-29
+
+### Added
+
+* Add new transform: `Identity`
+* Add API for processing targets alongside inputs. Some transforms experimentally
+  support this feature already.
+
+### Changed
+
+* Add `ObjectDict` output type as alternative to `torch.Tensor`. This alternative is opt-in for
+  now (for backwards-compatibility), but note that the old output type (`torch.Tensor`) is
+  deprecated and support for it will be removed in a future version.
+* Allow specifying a file path, a folder path, a list of files or a list of folders to
+  `AddBackgroundNoise` and `ApplyImpulseResponse`
+* Require newer version of `torch-pitch-shift` to ensure support for torchaudio 0.11 in `PitchShift`
+
+### Fixed
+
+* Fix a bug where `BandPassFilter` didn't work on GPU
 
 ## [v0.10.1] - 2022-03-24
 
