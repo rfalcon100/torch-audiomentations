@@ -143,14 +143,18 @@ class BaseWaveformTransform(torch.nn.Module):
             )
             return output.samples if self.output_type == "tensor" else output
 
-        if not isinstance(samples, Tensor) or len(samples.shape) != 3:
-            raise RuntimeError(
-                "torch-audiomentations expects three-dimensional input tensors, with"
-                " dimension ordering like [batch_size, num_channels, num_samples]. If your"
-                " audio is mono, you can use a shape like [batch_size, 1, num_samples]."
-            )
+        # FIXME: I disabled this check for the spec augment functions, but this should probably be a new class like BaseSpecTransform
+        #if not isinstance(samples, Tensor) or len(samples.shape) != 3:
+        #    raise RuntimeError(
+        #        "torch-audiomentations expects three-dimensional input tensors, with"
+        #        " dimension ordering like [batch_size, num_channels, num_samples]. If your"
+        #        " audio is mono, you can use a shape like [batch_size, 1, num_samples]."
+        #    )
 
-        batch_size, num_channels, num_samples = samples.shape
+        if len(samples.shape) == 3:
+            batch_size, num_channels, num_samples = samples.shape
+        else:
+            batch_size, num_channels, freqs, num_samples = samples.shape
 
         if batch_size * num_channels * num_samples == 0:
             warnings.warn(
