@@ -12,6 +12,7 @@ from .augmentations.padding import Padding
 from .augmentations.peak_normalization import PeakNormalization
 from .augmentations.pitch_shift import PitchShift
 from .augmentations.polarity_inversion import PolarityInversion
+from .augmentations.random_crop import RandomCrop
 from .augmentations.shift import Shift
 from .augmentations.shuffle_channels import ShuffleChannels
 from .augmentations.splice_out import SpliceOut
@@ -22,4 +23,4 @@ from .core.composition import Compose, SomeOf, OneOf
 from .utils.config import from_dict, from_yaml
 from .utils.convolution import convolve
 
-__version__ = "0.10.1"
+__version__ = "0.11.0"
