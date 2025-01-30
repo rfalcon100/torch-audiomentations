@@ -31,7 +31,6 @@ class RandomCrop(torch.nn.Module):
             raise ValueError('max_length_unit must be "samples" or "seconds"')
 
     def forward(self, samples, sampling_rate: typing.Optional[int] = None):
-
         sample_rate = sampling_rate or self.sampling_rate
         if sample_rate is None:
             raise RuntimeError("sample_rate is required")
@@ -71,10 +70,9 @@ class RandomCrop(torch.nn.Module):
             0, samples.shape[2] - self.num_samples, (samples.shape[2],)
         )
         samples_cropped = torch.empty(
-            (samples.shape[0], samples.shape[1], self.num_samples)
+            (samples.shape[0], samples.shape[1], self.num_samples), device=samples.device
         )
         for i, sample in enumerate(samples):
-
             samples_cropped[i] = sample.unsqueeze(0)[
                 :, :, start_indices[i] : start_indices[i] + self.num_samples
             ]

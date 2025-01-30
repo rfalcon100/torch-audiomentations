@@ -27,7 +27,7 @@ def _gen_noise(f_decay, num_samples, sample_rate, device):
     )
     spec *= mask
     noise = Audio.rms_normalize(irfft(spec).unsqueeze(0)).squeeze()
-    noise = torch.cat([noise] * int(ceil(num_samples / sample_rate)))
+    noise = torch.cat([noise] * int(ceil(num_samples / noise.shape[0])))
     return noise[:num_samples]
 
 
@@ -110,12 +110,20 @@ class AddColoredNoise(BaseWaveformTransform):
             ("snr_in_db", self.min_snr_in_db, self.max_snr_in_db),
             ("f_decay", self.min_f_decay, self.max_f_decay),
         ]:
-            dist = torch.distributions.Uniform(
-                low=torch.tensor(mini, dtype=torch.float32, device=samples.device),
-                high=torch.tensor(maxi, dtype=torch.float32, device=samples.device),
-                validate_args=True,
-            )
-            self.transform_parameters[param] = dist.sample(sample_shape=(batch_size,))
+            if mini == maxi:
+                self.transform_parameters[param] = torch.full(
+                    size=(batch_size,),
+                    fill_value=mini,
+                    dtype=torch.float32,
+                    device=samples.device,
+                )
+            else:
+                dist = torch.distributions.Uniform(
+                    low=torch.tensor(mini, dtype=torch.float32, device=samples.device),
+                    high=torch.tensor(maxi, dtype=torch.float32, device=samples.device),
+                    validate_args=True,
+                )
+                self.transform_parameters[param] = dist.sample(sample_shape=(batch_size,))
 
     def apply_transform(
         self,
@@ -124,7 +132,6 @@ class AddColoredNoise(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         batch_size, num_channels, num_samples = samples.shape
 
         # (batch_size, num_samples)

@@ -1,8 +1,6 @@
-import warnings
 from pathlib import Path
 from typing import Text, Union
 
-import librosa
 import torch
 import torchaudio
 from torch import Tensor
@@ -21,10 +19,6 @@ Audio files can be provided to the Audio class using different types:
 
 The optional "channel" key can be used to indicate a specific channel.
 """
-
-# TODO: Remove this when it is the default
-torchaudio.USE_SOUNDFILE_LEGACY_INTERFACE = False
-torchaudio.set_audio_backend("soundfile")
 
 
 class Audio:
@@ -51,11 +45,8 @@ class Audio:
 
     @staticmethod
     def is_valid(file: AudioFile) -> bool:
-
         if isinstance(file, dict):
-
             if "samples" in file:
-
                 samples = file["samples"]
                 if len(samples.shape) != 2 or samples.shape[0] > samples.shape[1]:
                     raise ValueError(
@@ -96,9 +87,9 @@ class Audio:
         return samples / (rms + 1e-8)
 
     @staticmethod
-    def get_audio_metadata(file_path) -> tuple:
+    def get_audio_metadata(file_path: Union[str, Path]) -> tuple:
         """Return (num_samples, sample_rate)."""
-        info = torchaudio.info(file_path)
+        info = torchaudio.info(str(file_path))
         # Deal with backwards-incompatible signature change.
         # See https://github.com/pytorch/audio/issues/903 for more information.
         if type(info) is tuple:
@@ -120,7 +111,6 @@ class Audio:
         self.is_valid(file)
 
         if isinstance(file, dict):
-
             # file = {"samples": torch.Tensor, "sample_rate": int, [ "channel": int ]}
             if "samples" in file:
                 num_samples = file["samples"].shape[1]
@@ -163,18 +153,9 @@ class Audio:
 
         # resample
         if self.sample_rate != sample_rate:
-            samples = samples.numpy()
-            if self.mono:
-                # librosa expects mono audio to be of shape (n,), but we have (1, n).
-                samples = librosa.core.resample(
-                    samples[0], orig_sr=sample_rate, target_sr=self.sample_rate
-                )[None]
-            else:
-                samples = librosa.core.resample(
-                    samples.T, orig_sr=sample_rate, target_sr=self.sample_rate
-                ).T
-
-            samples = torch.tensor(samples)
+            samples = torchaudio.functional.resample(
+                samples, sample_rate, self.sample_rate
+            )
 
         return samples
 
@@ -204,7 +185,6 @@ class Audio:
         original_samples = None
 
         if isinstance(file, dict):
-
             # file = {"samples": torch.Tensor, "sample_rate": int, [ "channel": int ]}
             if "samples" in file:
                 original_samples = file["samples"]

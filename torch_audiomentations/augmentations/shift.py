@@ -1,5 +1,5 @@
 import torch
-from typing import Optional
+from typing import Optional, Union
 from torch import Tensor
 
 from ..core.transforms_interface import BaseWaveformTransform
@@ -63,8 +63,8 @@ class Shift(BaseWaveformTransform):
 
     def __init__(
         self,
-        min_shift: float = -0.5,
-        max_shift: float = 0.5,
+        min_shift: Union[float, int] = -0.5,
+        max_shift: Union[float, int] = 0.5,
         shift_unit: str = "fraction",
         rollover: bool = True,
         mode: str = "per_example",
@@ -166,7 +166,6 @@ class Shift(BaseWaveformTransform):
         targets: Optional[Tensor] = None,
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
-
         num_samples_to_shift = self.transform_parameters["num_samples_to_shift"]
 
         # Select fastest implementation based on device

@@ -1,10 +1,10 @@
 ![torch-audiomentations](images/torch_audiomentations_logo.png)
 ---
 
-![Build status](https://img.shields.io/github/workflow/status/asteroid-team/torch-audiomentations/CI)
-[![Code coverage](https://img.shields.io/codecov/c/github/asteroid-team/torch-audiomentations/master.svg)](https://codecov.io/gh/asteroid-team/torch-audiomentations)
+![Build status](https://img.shields.io/github/actions/workflow/status/asteroid-team/torch-audiomentations/ci.yml?branch=main)
+[![Code coverage](https://img.shields.io/codecov/c/github/asteroid-team/torch-audiomentations/main.svg)](https://codecov.io/gh/asteroid-team/torch-audiomentations)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-black.svg)](https://github.com/ambv/black)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6778064.svg)](https://doi.org/10.5281/zenodo.6778064)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14650813.svg)](https://doi.org/10.5281/zenodo.14650813)
 
 Audio data augmentation in PyTorch. Inspired by [audiomentations](https://github.com/iver56/audiomentations).
 
@@ -55,6 +55,13 @@ audio_samples = torch.rand(size=(8, 2, 32000), dtype=torch.float32, device=torch
 perturbed_audio_samples = apply_augmentation(audio_samples, sample_rate=16000)
 ```
 
+# Known issues
+
+* Target data processing is still in an experimental state ([#3](https://github.com/asteroid-team/torch-audiomentations/issues/3)). Workaround: Use `freeze_parameters` and `unfreeze_parameters` for now if the target data is audio with the same shape as the input.
+* Using torch-audiomentations in a multiprocessing context can lead to memory leaks ([#132](https://github.com/asteroid-team/torch-audiomentations/issues/132)). Workaround: If using torch-audiomentations in a multiprocessing context, it'll probably work better to run the transforms on CPU.
+* Multi-GPU / DDP is not officially supported ([#136](https://github.com/asteroid-team/torch-audiomentations/issues/136)). The author does not have a multi-GPU setup to test & fix this. Get in touch if you want to donate some hardware for this. Workaround: Run the transforms on single GPU instead.
+* `PitchShift` does not support small pitch shifts, especially for low sample rates ([#151](https://github.com/asteroid-team/torch-audiomentations/issues/151)). Workaround: If you need small pitch shifts applied to low sample rates, use [PitchShift in audiomentations](https://iver56.github.io/audiomentations/waveform_transforms/pitch_shift/) or [torch-pitch-shift](https://github.com/KentoNishi/torch-pitch-shift/) directly without the function for calculating efficient pitch-shift targets.
+
 # Contribute
 
 Contributors welcome! 
@@ -67,6 +74,8 @@ We don't want data augmentation to be a bottleneck in model training speed. Here
 comparison of the time it takes to run 1D convolution:
 
 ![Convolve execution times](images/convolve_exec_time_plot.png)
+
+Note: Not all transforms have a speedup this impressive compared to CPU. In general, running audio data augmentation on GPU is not always the best option. For more info, see this article: [https://iver56.github.io/audiomentations/guides/cpu_vs_gpu/](https://iver56.github.io/audiomentations/guides/cpu_vs_gpu/)
 
 # Current state
 
@@ -207,6 +216,33 @@ classification. It was successfully applied in the paper
 ### Added
 
 * Add new transforms: `Mix`, `Padding`, `RandomCrop` and `SpliceOut`
+
+## [v0.12.0] - 2025-01-15
+
+### Removed
+
+* Remove `librosa` dependency in favor of `torchaudio`
+
+## [v0.11.2] - 2025-01-09
+
+### Fixed
+
+* Fix a device-related bug in `transform_parameters` when training on multiple GPUs
+* Fix a shape-related edge case bug in `AddColoredNoise`
+* Fix a bug where an incompatible Path data type was passed to torchaudio.info
+
+## [v0.11.1] - 2024-02-07
+
+### Changed
+
+* Add support for constant cutoff frequency in `LowPassFilter` and `HighPassFilter`
+* Add support for min_f_decay==max_f_decay in `AddColoredNoise`
+* Bump torchaudio dependency from >=0.7.0 to >=0.9.0
+
+### Fixed
+
+* Fix inaccurate type hints in `Shift`
+* Remove `set_backend` to avoid `UserWarning` from torchaudio
 
 ## [v0.11.0] - 2022-06-29
 
