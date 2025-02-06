@@ -41,8 +41,14 @@ class Quantization(BaseWaveformTransform):
         output_type: Optional[str] = None,
     ):
         """
-        :param min_cutoff_freq: Minimum cutoff frequency in hertz
-        :param max_cutoff_freq: Maximum cutoff frequency in hertz
+        :param max_win_len: Minimum length of the window, in either samples, seconds or fraction
+        :param min_win_len: Maximum length of the window, in either samples, seconds or fraction
+        :param win_len_unit: "seconds", "samples", "fraction"
+        :param n_bins: number of bins to quantize the signal
+        :param min_value: Minimum value of the input signals, used to scale the quantization properly
+        :param max_value: Maximum value of the input signals, used to scale the quantization properly
+        :param n_bins_jitter: Adds a small offset to the number of bins, can be non integet. E.g. 1.5 with n_bins = 10, we sample bins from [8.5, 11.5]
+        :param:n_windows: Number of windows to apply the quantization. NOTE this is not supported yet.
         :param mode:
         :param p:
         :param p_mode:
@@ -95,8 +101,7 @@ class Quantization(BaseWaveformTransform):
             min_win_len_samples = int(round(self.min_win_len * sample_rate))
             max_win_len_samples = int(round(self.max_win_len * sample_rate))
         else:
-            raise ValueError("Invalid shift_unit")
-
+            raise ValueError("Invalid win_len_unit")
 
         self.transform_parameters["win_lens"] = torch.randint(
             low=min_win_len_samples,
@@ -105,32 +110,14 @@ class Quantization(BaseWaveformTransform):
             dtype=torch.int32,
             device=samples.device,)
         
-        if False:
-            center_ids = []
-            for i in range(batch_size):
-                center_ids.append(torch.randint(low=(self.transform_parameters["win_lens"][i].item() // 2) + 1,
-                                                high=(samples.shape[-1] - (self.transform_parameters["win_lens"][i].item() // 2)) - 1,
-                                                size=(batch_size,),
-                                                dtype=torch.int32,
-                                                device=samples.device,)
-                                )
-            self.transform_parameters["center_id"] = torch.stack(center_ids)
-        if False:
-            self.transform_parameters["center_id"] = torch.randint(
-                low=(self.transform_parameters["win_len"] // 2) + 1,
-                high=(samples.shape[-1] - (self.transform_parameters["win_len"] // 2)) - 1,
-                size=(batch_size,),
-                dtype=torch.int32,
-                device=samples.device,
-            )
+        # NOTE: we sample center_id in the apply_transform so that we dont have to iterate batch and channels twice
+
+        # n_bins with jitter if needed
         self.transform_parameters["n_bins"] = self.n_bins + (torch.rand(
             size=(batch_size, channels),
             dtype=torch.float32,
             device=samples.device,)  * (2*self.n_bins_jitter) - self.n_bins_jitter)
                 
-
-        
-
     def apply_transform(
         self,
         samples: Tensor = None,
@@ -139,14 +126,13 @@ class Quantization(BaseWaveformTransform):
         target_rate: Optional[int] = None,
     ) -> ObjectDict:
         batch_size, num_channels, num_samples = samples.shape
-        quantized_samples = []
 
         #win_len = self.transform_parameters['win_lens']
         #center_id = self.transform_parameters['center_id']
         #n_bins = self.transform_parameters['n_bins']
 
-        for b in range(samples.shape[0]):
-            for c in range(samples.shape[1]):
+        for b in range(batch_size):
+            for c in range(num_channels):
                 sample = samples[b,c,:]
                 win_len = self.transform_parameters['win_lens'][b, c]
                 n_bins = self.transform_parameters['n_bins'][b, c]
