@@ -18,6 +18,7 @@ from .augmentations.spec_freq_masking import SpecFreqMasking
 from .augmentations.time_inversion import TimeInversion
 from .augmentations.splice_out import SpliceOut
 from .augmentations.quantization import Quantization
+from .augmentations.sparse_noise import AddSparseNoise
 from .core.composition import Compose, SomeOf, OneOf
 from .utils.config import from_dict, from_yaml
 from .utils.convolution import convolve
